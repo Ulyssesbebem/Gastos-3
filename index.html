@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--verde:#2ecc71;--verde-escuro:#27ae60;--vermelho:#e74c3c;--azul:#3498db;--roxo:#6c5ce7;--cinza:#ecf0f1;--cinza-escuro:#95a5a6;--texto:#2c3e50;--branco:#fff;--sombra:0 2px 8px rgba(0,0,0,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:var(--texto);font-size:15px}
+header{background:var(--texto);color:var(--branco);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sombra)}
+header h1{font-size:1.1rem;font-weight:600}
+.mes-select{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;outline:none}
+.container{max-width:900px;margin:0 auto;padding:16px}
+.resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.card-resumo{background:var(--branco);border-radius:12px;padding:14px;box-shadow:var(--sombra);text-align:center}
+.card-resumo .label{font-size:.75rem;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:.5px}
+.card-resumo .valor{font-size:1.25rem;font-weight:700;margin-top:4px}
+.card-resumo.rec .valor{color:var(--verde-escuro)}
+.card-resumo.desp .valor{color:var(--vermelho)}
+.card-resumo.saldo .valor{color:var(--azul)}
+.btn-add{display:flex;align-items:center;gap:8px;background:var(--verde);color:white;border:none;border-radius:10px;padding:12px 18px;font-size:.95rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;justify-content:center;box-shadow:var(--sombra);transition:background .2s}
+.btn-add:active{background:var(--verde-escuro)}
+.secao{background:var(--branco);border-radius:12px;box-shadow:var(--sombra);margin-bottom:16px;overflow:hidden}
+.secao-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--cinza)}
+.secao-header h2{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{background:var(--cinza);border-radius:20px;padding:2px 10px;font-size:.8rem;font-weight:700;color:var(--texto)}
+.badge.neg{background:#fdecea;color:var(--vermelho)}
+.badge.pos{background:#d5f5e3;color:var(--verde-escuro)}
+.chevron{transition:transform .2s;font-size:.8rem;color:var(--cinza-escuro);flex-shrink:0}
+.secao.collapsed .chevron{transform:rotate(-90deg)}
+.secao.collapsed .secao-body{display:none}
+.item{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--cinza);gap:10px}
+.item:last-child{border-bottom:none}
+.item-info{flex:1;min-width:0}
+.item-desc{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:.75rem;color:var(--cinza-escuro);margin-top:2px}
+.item-valor{font-weight:600;font-size:.9rem;white-space:nowrap;color:var(--vermelho)}
+.item-valor.rec{color:var(--verde-escuro)}
+.btn-icone{background:none;border:none;color:var(--cinza-escuro);cursor:pointer;font-size:1rem;padding:4px;border-radius:6px;flex-shrink:0}
+.btn-icone:active{color:var(--vermelho);background:#fdecea}
+.nota-div{font-size:.78rem;color:var(--cinza-escuro);padding:8px 16px;background:#fffbf0;border-top:1px solid #f0e6c0}
+.form-add{padding:14px 16px;border-top:2px solid var(--verde);background:#f9fffe;display:none}
+.form-add.active{display:block}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+.form-group label{font-size:.75rem;color:var(--cinza-escuro);font-weight:500}
+.form-group input,.form-group select{border:1.5px solid #ddd;border-radius:8px;padding:8px 10px;font-size:.9rem;outline:none;width:100%;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--verde)}
+.btn-submit{background:var(--verde);color:white;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;width:100%}
+.btn-submit:active{background:var(--verde-escuro)}
+.sec-label{padding:6px 16px;background:var(--cinza);font-size:.75rem;font-weight:600;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:.5px}
+.btn-compartilhar{background:var(--roxo);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn-compartilhar:active{opacity:.7}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.modal-box{background:white;border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title h3{font-size:1rem}
+.btn-fechar{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--cinza-escuro)}
+.menu-config{position:relative}
+.menu-config-btn{background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;padding:4px 8px}
+@media(max-width:480px){.resumo{gap:8px}.card-resumo .valor{font-size:1rem}.card-resumo{padding:10px 8px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px">
+    <h1 id="header-titulo">💰 Gastos</h1>
+    <a href="configuracoes.html" style="color:white;font-size:1.1rem;text-decoration:none;padding:4px" title="Configurações">⚙️</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button onclick="mudarMes(-1)" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;padding:4px 8px">&#8592;</button>
+    <select id="sel-mes" class="mes-select" onchange="irParaMes(this.value)"></select>
+    <button onclick="mudarMes(1)" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;padding:4px 8px">&#8594;</button>
+  </div>
+</header>
+
+<div class="container" id="conteudo"></div>
+
+<!-- Modal editar despesa -->
+<div class="modal" id="modal-desp">
+  <div class="modal-box">
+    <div class="modal-title"><h3>Editar Gasto</h3><button class="btn-fechar" onclick="fecharModal()">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoria</label><select id="ed-cat"></select></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="text" id="ed-valor" inputmode="decimal"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2"><label>Descrição</label><input type="text" id="ed-desc"></div>
+      <div class="form-group"><label>Parcela</label><input type="text" id="ed-parcela" placeholder="3/12"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cartão</label><select id="ed-cartao"></select></div>
+      <div class="form-group"><label>Data</label><input type="date" id="ed-data"></div>
+    </div>
+    <button class="btn-submit" onclick="salvarEdicaoDespesa()">Salvar alteração</button>
+  </div>
+</div>
+
+<!-- Modal editar receita -->
+<div class="modal" id="modal-rec">
+  <div class="modal-box">
+    <div class="modal-title"><h3>Editar Receita</h3><button class="btn-fechar" onclick="fecharModal()">✕</button></div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2"><label>Descrição</label><input type="text" id="er-desc"></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="text" id="er-valor" inputmode="decimal"></div>
+    </div>
+    <button class="btn-submit" style="background:var(--azul)" onclick="salvarEdicaoReceita()">Salvar alteração</button>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+if (!DB.isConfigured()) location.href = 'setup.html';
+
+let MES = new URLSearchParams(location.search).get('mes') || DB.getMesAtual();
+let editandoId = null;
+
+function mudarMes(dir) {
+  MES = dir < 0 ? DB.mesAnterior(MES) : DB.mesProximo(MES);
+  history.replaceState(null,'',`?mes=${MES}`);
+  renderizar();
+}
+function irParaMes(m) { MES = m; history.replaceState(null,'',`?mes=${MES}`); renderizar(); }
+function toggleSecao(id) { document.getElementById(id)?.classList.toggle('collapsed'); }
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('active');
+  if (el.classList.contains('active')) el.querySelector('input,select')?.focus();
+}
+function fecharModal() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); editandoId = null; }
+
+function abrirEditarDespesa(id) {
+  const d = DB.getDespesas().find(x => x.id === id);
+  if (!d) return;
+  editandoId = id;
+  const cats = DB.getCategorias();
+  document.getElementById('ed-cat').innerHTML = cats.map(c =>
+    `<option value="${c.chave}" ${c.chave===d.categoria?'selected':''}>${c.emoji} ${DB.escHtml(c.nome)}</option>`).join('');
+  document.getElementById('ed-cartao').innerHTML = `<option value="">— nenhum —</option>` +
+    DB.CARTOES.map(c => `<option ${c===(d.cartao||'')?'selected':''}>${c}</option>`).join('');
+  document.getElementById('ed-desc').value = d.descricao;
+  document.getElementById('ed-valor').value = d.valor;
+  document.getElementById('ed-parcela').value = d.parcela || '';
+  document.getElementById('ed-data').value = d.data || '';
+  document.getElementById('modal-desp').classList.add('open');
+}
+function salvarEdicaoDespesa() {
+  if (!editandoId) return;
+  const val = parseFloat(document.getElementById('ed-valor').value.replace(',','.'));
+  if (isNaN(val)) return;
+  DB.updateDespesa(editandoId, {
+    categoria: document.getElementById('ed-cat').value,
+    descricao: document.getElementById('ed-desc').value.trim(),
+    valor: val,
+    parcela: document.getElementById('ed-parcela').value.trim() || null,
+    cartao: document.getElementById('ed-cartao').value || null,
+    data: document.getElementById('ed-data').value || null,
+  });
+  fecharModal(); renderizar();
+}
+function abrirEditarReceita(id) {
+  const r = DB.getReceitas().find(x => x.id === id);
+  if (!r) return;
+  editandoId = id;
+  document.getElementById('er-desc').value = r.descricao || '';
+  document.getElementById('er-valor').value = r.valor;
+  document.getElementById('modal-rec').classList.add('open');
+}
+function salvarEdicaoReceita() {
+  if (!editandoId) return;
+  const val = parseFloat(document.getElementById('er-valor').value.replace(',','.'));
+  if (isNaN(val)) return;
+  DB.updateReceita(editandoId, { descricao: document.getElementById('er-desc').value.trim() || null, valor: val });
+  fecharModal(); renderizar();
+}
+function adicionarDespesa(form) {
+  const fd = new FormData(form);
+  const val = parseFloat((fd.get('valor')||'').replace(',','.'));
+  if (!val || !fd.get('descricao')?.trim()) return alert('Preencha descrição e valor.');
+  DB.addDespesa({ mes: MES, categoria: fd.get('categoria'), descricao: fd.get('descricao').trim(), valor: val, parcela: fd.get('parcela') || null, cartao: fd.get('cartao') || null, data: fd.get('data') || null });
+  form.reset();
+  const di = form.querySelector('input[type=date]');
+  if (di) di.value = DB.hoje();
+  renderizar();
+}
+function adicionarReceita(form) {
+  const fd = new FormData(form);
+  const val = parseFloat((fd.get('valor')||'').replace(',','.'));
+  if (!val) return alert('Informe o valor.');
+  DB.addReceita({ mes: MES, descricao: fd.get('descricao') || null, valor: val });
+  form.reset();
+  renderizar();
+}
+function excluirDespesa(id) { if (!confirm('Excluir?')) return; DB.deleteDespesa(id); renderizar(); }
+function excluirReceita(id) { if (!confirm('Excluir?')) return; DB.deleteReceita(id); renderizar(); }
+
+async function compartilharPessoa(pessoaId) {
+  const cfg = DB.getConfig();
+  const p = DB.getPessoas().find(x => x.id === pessoaId);
+  if (!p) return;
+  const calc = DB.calcularMes(MES);
+  const gastos = DB.getDespesas().filter(d => d.mes === MES && d.categoria === p.chave);
+  const totalDeve = calc.devedores[p.chave] || 0;
+  const casaPorPessoa = p.divideCasa ? calc.casaPorPessoa : 0;
+  const totalPessoal = gastos.reduce((s,d) => s+d.valor, 0);
+  const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado: DB.formatarMes(MES), gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [img] })) {
+      await navigator.share({ files: [img], title: `Gastos ${p.nome}` });
+    } else { baixar(img, p.nome); }
+  } catch(e) { if (e.name !== 'AbortError') baixar(img, p.nome); }
+}
+
+function baixar(file, nome) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = `gastos-${nome}.png`; a.click();
+}
+
+async function gerarImagem({ nome, emoji, cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
+  const W = 560, PAD = 28, LH = 38, R = 12;
+  const linhasCasa = casaPorPessoa > 0 ? 2 : 0;
+  const H = 200 + Math.max(gastos.length,1)*LH + 60 + linhasCasa*LH + 80;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#f0f2f5'; c.fillRect(0,0,W,H);
+  c.fillStyle = cor; c.fillRect(0,0,W,90);
+  c.fillStyle='white'; c.font='bold 26px Arial';
+  c.fillText(`${emoji} ${nome}`, PAD, 42);
+  c.font='18px Arial'; c.fillText(mesFormatado, PAD, 72);
+  let y = 106;
+  c.fillStyle='white'; box(c,PAD,y,W-PAD*2,88,R);
+  c.fillStyle='#e74c3c'; c.font='bold 32px Arial'; c.textAlign='center';
+  c.fillText(`R$ ${DB.fmt(totalDeve)}`, W/2, y+46);
+  c.fillStyle='#95a5a6'; c.font='14px Arial';
+  c.fillText('Total a pagar', W/2, y+74);
+  c.textAlign='left'; y+=104;
+  c.fillStyle='white'; const hg=Math.max(gastos.length,1)*LH+44; box(c,PAD,y,W-PAD*2,hg,R);
+  c.fillStyle='#95a5a6'; c.font='bold 11px Arial'; c.fillText('SEUS GASTOS', PAD+12, y+16);
+  let iy=y+24;
+  if (!gastos.length) { c.fillStyle='#bbb'; c.font='14px Arial'; c.fillText('Nenhum gasto neste mês', PAD+12, iy+20); iy+=LH; }
+  else gastos.forEach(d => {
+    c.fillStyle='#2c3e50'; c.font='14px Arial';
+    c.fillText(trunc(d.descricao+(d.parcela?` (${d.parcela})`:''),34), PAD+12, iy+20);
+    c.fillStyle='#e74c3c'; c.font='bold 14px Arial'; c.textAlign='right';
+    c.fillText(`R$ ${DB.fmt(d.valor)}`, W-PAD-12, iy+20); c.textAlign='left'; iy+=LH;
+  });
+  c.fillStyle='#f5f5f5'; c.fillRect(PAD,iy,W-PAD*2,LH);
+  c.fillStyle='#2c3e50'; c.font='bold 14px Arial'; c.fillText('Subtotal', PAD+12, iy+24);
+  c.fillStyle='#e74c3c'; c.textAlign='right'; c.fillText(`R$ ${DB.fmt(totalPessoal)}`, W-PAD-12, iy+24); c.textAlign='left';
+  y+=hg+12;
+  if (casaPorPessoa>0) {
+    c.fillStyle='white'; box(c,PAD,y,W-PAD*2,LH*2+20,R);
+    c.fillStyle='#95a5a6'; c.font='bold 11px Arial'; c.fillText('DIVISÃO DE CASA', PAD+12, y+16);
+    c.fillStyle='#2c3e50'; c.font='14px Arial'; c.fillText('Sua parte das contas', PAD+12, y+16+LH);
+    c.fillStyle='#e74c3c'; c.font='bold 14px Arial'; c.textAlign='right';
+    c.fillText(`R$ ${DB.fmt(casaPorPessoa)}`, W-PAD-12, y+16+LH); c.textAlign='left';
+    y+=LH*2+20+12;
+  }
+  c.fillStyle='#b2bec3'; c.font='12px Arial'; c.textAlign='center';
+  c.fillText(`Enviado por ${nomeCred} · ${new Date().toLocaleDateString('pt-BR')}`, W/2, y+16);
+  return new Promise(res => cv.toBlob(b => res(new File([b],`gastos-${nome}.png`,{type:'image/png'})),'image/png'));
+}
+
+function box(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y+w,x+w,y,r); c.closePath(); c.fill(); }
+function trunc(s,n){ return s.length>n?s.slice(0,n-1)+'…':s; }
+
+function itemHTML(d) {
+  const meta = [d.cartao,d.data].filter(Boolean).join(' · ');
+  return `<div class="item">
+    <div class="item-info">
+      <div class="item-desc">${DB.escHtml(d.descricao)}${d.parcela?` <small style="color:#aaa">(${d.parcela})</small>`:''}  </div>
+      ${meta?`<div class="item-meta">${DB.escHtml(meta)}</div>`:''}
+    </div>
+    <span class="item-valor">R$ ${DB.fmt(d.valor)}</span>
+    <button class="btn-icone" onclick="abrirEditarDespesa(${d.id})">✏️</button>
+    <button class="btn-icone" onclick="excluirDespesa(${d.id})">✕</button>
+  </div>`;
+}
+
+function secaoHTML(cat, itens, cor, extra='') {
+  const total = itens.reduce((s,d)=>s+d.valor,0);
+  const fid = 'f_'+cat.chave;
+  const sid = 's_'+cat.chave;
+  return `<div class="secao" id="${sid}">
+    <div class="secao-header" onclick="toggleSecao('${sid}')">
+      <h2>${cat.emoji} ${DB.escHtml(cat.nome)} <span class="badge neg">R$ ${DB.fmt(total)}</span></h2>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="secao-body">
+      ${itens.length?itens.map(itemHTML).join(''):'<div class="item" style="color:var(--cinza-escuro);font-size:.85rem">Nenhum gasto ainda</div>'}
+      ${extra}
+      <div class="form-add" id="${fid}" style="border-top-color:${cor}">
+        <form onsubmit="event.preventDefault();adicionarDespesa(this)">
+          <input type="hidden" name="categoria" value="${cat.chave}">
+          <div class="form-row">
+            <div class="form-group" style="flex:2"><label>Descrição</label><input type="text" name="descricao" required placeholder="Descrição"></div>
+            <div class="form-group"><label>Valor</label><input type="text" name="valor" required inputmode="decimal" placeholder="0,00"></div>
+            <div class="form-group"><label>Parcela</label><input type="text" name="parcela" placeholder="1/12"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Cartão</label><select name="cartao"><option value="">— nenhum —</option>${DB.CARTOES.map(c=>`<option>${c}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Data</label><input type="date" name="data" value="${DB.hoje()}"></div>
+          </div>
+          <button type="submit" class="btn-submit" style="background:${cor}">Salvar</button>
+        </form>
+      </div>
+      <div style="padding:10px 16px;border-top:1px solid var(--cinza)">
+        <button class="btn-add" style="background:${cor};margin:0" onclick="toggleForm('${fid}')">＋ ${DB.escHtml(cat.nome)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderizar() {
+  if (!DB.isConfigured()) { location.href = 'setup.html'; return; }
+  const cfg = DB.getConfig();
+  const pessoas = DB.getPessoas();
+  const cats = DB.getCategorias();
+  const despesas = DB.getDespesas();
+  const receitas = DB.getReceitas().filter(r => r.mes === MES);
+  const calc = DB.calcularMes(MES);
+
+  document.getElementById('header-titulo').textContent = `💰 ${cfg.nomePrincipal}`;
+
+  const meses = DB.getMesesDisponiveis(MES);
+  const sel = document.getElementById('sel-mes');
+  sel.innerHTML = meses.map(m => `<option value="${m}" ${m===MES?'selected':''}>${DB.formatarMes(m)}</option>`).join('');
+
+  const catOpts = cats.map(c => `<option value="${c.chave}">${c.emoji} ${DB.escHtml(c.nome)}</option>`).join('');
+
+  let html = `<div class="resumo">
+    <div class="card-resumo rec"><div class="label">Renda Total</div><div class="valor">R$ ${DB.fmt0(calc.totalReceitas)}</div></div>
+    <div class="card-resumo desp"><div class="label">Despesas</div><div class="valor">R$ ${DB.fmt0(calc.totalDespesas)}</div></div>
+    <div class="card-resumo saldo"><div class="label">Saldo</div><div class="valor" style="color:${calc.saldo>=0?'var(--verde-escuro)':'var(--vermelho)'}">R$ ${DB.fmt0(calc.saldo)}</div></div>
+  </div>
+  <button class="btn-add" onclick="toggleForm('f_global')">＋ Adicionar Gasto</button>
+  <div class="form-add" id="f_global">
+    <form onsubmit="event.preventDefault();adicionarDespesa(this)">
+      <div class="form-row">
+        <div class="form-group"><label>Categoria</label><select name="categoria">${catOpts}</select></div>
+        <div class="form-group"><label>Valor (R$)</label><input type="text" name="valor" placeholder="0,00" required inputmode="decimal"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>Descrição</label><input type="text" name="descricao" placeholder="Descrição" required></div>
+        <div class="form-group"><label>Parcela</label><input type="text" name="parcela" placeholder="3/12"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cartão</label><select name="cartao"><option value="">— nenhum —</option>${DB.CARTOES.map(c=>`<option>${c}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Data</label><input type="date" name="data" value="${DB.hoje()}"></div>
+      </div>
+      <button type="submit" class="btn-submit">Salvar Gasto</button>
+    </form>
+  </div>`;
+
+  // Seções de despesas por categoria
+  cats.forEach(cat => {
+    const itens = despesas.filter(d => d.mes === MES && d.categoria === cat.chave);
+    let extra = '';
+    if (cat.tipo === 'casa') {
+      extra = calc.totalCasa > 0
+        ? `<div class="nota-div">Total: R$ ${DB.fmt(calc.totalCasa)} ÷ ${calc.numDivisoesCasa} pessoas = R$ ${DB.fmt(calc.casaPorPessoa)} cada</div>`
+        : '';
+    }
+    html += secaoHTML(cat, itens, cat.cor || '#27ae60', extra);
+  });
+
+  // O que cada um deve (só se houver pessoas)
+  if (pessoas.length > 0) {
+    const totalDevedores = Object.values(calc.devedores).reduce((s,v)=>s+v,0);
+    html += `<div class="secao" id="s_devedores">
+      <div class="secao-header" onclick="toggleSecao('s_devedores')">
+        <h2>💵 O que cada um deve a você <span class="badge pos">R$ ${DB.fmt(totalDevedores)}</span></h2>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="secao-body">
+        ${pessoas.map(p => {
+          const totalPessoal = calc.totais[p.chave] || 0;
+          const totalDeve = calc.devedores[p.chave] || 0;
+          let linhas = '';
+          if (p.usaCartao) linhas += `<div class="item"><div class="item-info"><div class="item-desc">Gastos no seu cartão</div></div><span class="item-valor rec">R$ ${DB.fmt(totalPessoal)}</span></div>`;
+          if (p.divideCasa) linhas += `<div class="item"><div class="item-info"><div class="item-desc">Parte das contas de casa</div><div class="item-meta">R$ ${DB.fmt(calc.totalCasa)} ÷ ${calc.numDivisoesCasa}</div></div><span class="item-valor rec">R$ ${DB.fmt(calc.casaPorPessoa)}</span></div>`;
+          return `<div class="sec-label">${p.emoji} ${DB.escHtml(p.nome)}</div>
+            ${linhas}
+            <div class="item" style="background:#f0fff4">
+              <div class="item-info"><div class="item-desc" style="font-weight:700">Total que ${DB.escHtml(p.nome)} deve</div></div>
+              <span class="item-valor rec" style="font-size:1rem">R$ ${DB.fmt(totalDeve)}</span>
+              <button class="btn-compartilhar" onclick="compartilharPessoa(${p.id})">📤 Compartilhar</button>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Meu resumo
+  html += `<div class="secao" id="s_meu">
+    <div class="secao-header" onclick="toggleSecao('s_meu')">
+      <h2>📊 Meus gastos reais (${DB.escHtml(cfg.nomePrincipal)})</h2>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="secao-body">
+      <div class="item"><div class="item-info"><div class="item-desc">Gastos pessoais</div></div><span class="item-valor">R$ ${DB.fmt(calc.totais['pessoal']||0)}</span></div>
+      ${cfg.modoCasa?`<div class="item"><div class="item-info"><div class="item-desc">Minha parte das contas de casa</div><div class="item-meta">R$ ${DB.fmt(calc.totalCasa)} ÷ ${calc.numDivisoesCasa}</div></div><span class="item-valor">R$ ${DB.fmt(calc.casaPorPessoa)}</span></div>`:''}
+      <div class="item" style="background:#fff0f0"><div class="item-info"><div class="item-desc" style="font-weight:700">Total meus gastos reais</div></div><span class="item-valor" style="font-size:1rem">R$ ${DB.fmt(calc.meusGastosReais)}</span></div>
+    </div>
+  </div>`;
+
+  // Renda total
+  html += `<div class="secao" id="s_renda">
+    <div class="secao-header" onclick="toggleSecao('s_renda')">
+      <h2>💰 Renda total <span class="badge pos">R$ ${DB.fmt(calc.totalReceitas)}</span></h2>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="secao-body">
+      <div class="sec-label">Entradas</div>
+      ${receitas.map(r=>`<div class="item">
+        <div class="item-info"><div class="item-desc">${DB.escHtml(r.descricao||'Renda')}</div></div>
+        <span class="item-valor rec">R$ ${DB.fmt(r.valor)}</span>
+        <button class="btn-icone" onclick="abrirEditarReceita(${r.id})">✏️</button>
+        <button class="btn-icone" onclick="excluirReceita(${r.id})">✕</button>
+      </div>`).join('')||'<div class="item" style="color:var(--cinza-escuro);font-size:.85rem">Nenhuma entrada ainda</div>'}
+      <div style="padding:10px 16px;border-top:1px solid var(--cinza)">
+        <form onsubmit="event.preventDefault();adicionarReceita(this)" style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" name="descricao" placeholder="Ex: Salário" style="flex:2;min-width:120px;border:1.5px solid #ddd;border-radius:8px;padding:8px 10px;font-size:.9rem">
+          <input type="text" name="valor" placeholder="R$ 0,00" inputmode="decimal" style="flex:1;min-width:90px;border:1.5px solid #ddd;border-radius:8px;padding:8px 10px;font-size:.9rem">
+          <button type="submit" class="btn-submit" style="background:var(--azul)">+ Add</button>
+        </form>
+      </div>
+      ${pessoas.length>0?`<div class="sec-label">O que vão te pagar (automático)</div>
+      ${pessoas.map(p=>`<div class="item"><div class="item-info"><div class="item-desc">${p.emoji} ${DB.escHtml(p.nome)}</div></div><span class="item-valor rec">R$ ${DB.fmt(calc.devedores[p.chave]||0)}</span></div>`).join('')}
+      <div class="item" style="background:#f0fff4;border-top:2px solid var(--verde)">
+        <div class="item-info"><div class="item-desc" style="font-weight:700">Renda total do mês</div></div>
+        <span class="item-valor rec" style="font-size:1.1rem;font-weight:700">R$ ${DB.fmt(calc.totalReceitas)}</span>
+      </div>`:''}
+    </div>
+  </div>
+  <div style="height:40px"></div>`;
+
+  document.getElementById('conteudo').innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', renderizar);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

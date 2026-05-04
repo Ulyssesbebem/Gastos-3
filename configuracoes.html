@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurações</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#2c3e50;font-size:15px}
+header{background:#2c3e50;color:white;padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+header h1{font-size:1.1rem;font-weight:600}
+a.back{color:white;text-decoration:none;font-size:1.3rem}
+.container{max-width:600px;margin:0 auto;padding:16px}
+.card{background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
+.card-titulo{font-size:.85rem;font-weight:700;padding:14px 16px;border-bottom:1px solid #ecf0f1;color:#95a5a6;text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:16px}
+.campo{margin-bottom:14px}
+.campo label{display:block;font-size:.8rem;font-weight:600;color:#636e72;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.campo input{width:100%;border:2px solid #e0e0e0;border-radius:10px;padding:10px 14px;font-size:.95rem;outline:none}
+.campo input:focus{border-color:#6c5ce7}
+.campo-row{display:flex;gap:10px}
+.btn-salvar{background:#6c5ce7;color:white;border:none;border-radius:10px;padding:12px;font-size:.95rem;font-weight:600;cursor:pointer;width:100%}
+.btn-salvar:active{opacity:.8}
+.pessoa-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #ecf0f1;gap:12px}
+.pessoa-item:last-child{border-bottom:none}
+.p-emoji{font-size:1.4rem}
+.p-info{flex:1}
+.p-nome{font-weight:600;font-size:.95rem}
+.p-tags{display:flex;gap:6px;margin-top:3px}
+.tag{font-size:.7rem;padding:2px 8px;border-radius:20px;font-weight:600}
+.tag.casa{background:#fff3e0;color:#e67e22}
+.tag.cartao{background:#e8f4fd;color:#2980b9}
+.btn-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:1.1rem}
+.btn-del:active{color:#e74c3c}
+.add-form{padding:16px;border-top:1px solid #ecf0f1}
+.add-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.add-row input{flex:2;min-width:100px;border:1.5px solid #ddd;border-radius:8px;padding:8px 10px;font-size:.9rem;outline:none}
+.add-row input:focus{border-color:#6c5ce7}
+.add-row input.emoji-i{flex:0;width:56px;text-align:center;font-size:1.3rem}
+.check-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.check-label{display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer}
+.btn-add-p{background:#6c5ce7;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:.9rem;cursor:pointer;font-weight:600}
+.cores-mini{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cor-mini{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.cor-mini.ativa{border-color:#2c3e50;transform:scale(1.2)}
+.btn-danger{background:#fff5f5;color:#e74c3c;border:1px solid #fdecea;border-radius:10px;padding:12px;font-size:.9rem;font-weight:600;cursor:pointer;width:100%}
+.btn-danger:active{background:#fdecea}
+.toggle-switch{position:relative;display:inline-block;width:48px;height:26px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:26px;transition:.3s}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+input:checked+.slider{background:#6c5ce7}
+input:checked+.slider:before{transform:translateX(22px)}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info .t-titulo{font-weight:600;font-size:.9rem}
+.toggle-info .t-desc{font-size:.8rem;color:#95a5a6;margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">&#8592;</a>
+  <h1>⚙️ Configurações</h1>
+</header>
+<div class="container">
+
+  <!-- Dados pessoais -->
+  <div class="card">
+    <div class="card-titulo">Seus dados</div>
+    <div class="card-body">
+      <div class="campo-row">
+        <div class="campo" style="flex:3"><label>Seu nome</label><input type="text" id="cfg-nome"></div>
+        <div class="campo"><label>Emoji</label><input type="text" id="cfg-emoji" style="text-align:center;font-size:1.4rem" maxlength="2"></div>
+      </div>
+      <button class="btn-salvar" onclick="salvarDados()">Salvar</button>
+    </div>
+  </div>
+
+  <!-- Modos -->
+  <div class="card">
+    <div class="card-titulo">Funcionalidades</div>
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-titulo">🏠 Divisão de casa</div>
+          <div class="t-desc">Divide contas fixas com outras pessoas</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="tog-casa" onchange="salvarModos()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-titulo">💳 Gastos no cartão</div>
+          <div class="t-desc">Registra gastos de outros no seu cartão</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="tog-cartao" onchange="salvarModos()"><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pessoas -->
+  <div class="card">
+    <div class="card-titulo">Pessoas</div>
+    <div id="lista-pessoas"></div>
+    <div class="add-form">
+      <div class="add-row">
+        <input type="text" class="emoji-i" id="p-emoji" placeholder="👤" maxlength="2">
+        <input type="text" id="p-nome" placeholder="Nome da pessoa">
+      </div>
+      <div class="cores-mini" id="cores-p"></div>
+      <div class="check-row">
+        <label class="check-label"><input type="checkbox" id="p-casa" checked> 🏠 Divide casa</label>
+        <label class="check-label"><input type="checkbox" id="p-cartao" checked> 💳 Usa cartão</label>
+      </div>
+      <button class="btn-add-p" onclick="adicionarPessoa()">+ Adicionar pessoa</button>
+    </div>
+  </div>
+
+  <!-- Categorias extras -->
+  <div class="card">
+    <div class="card-titulo">Categorias extras</div>
+    <div id="lista-cats"></div>
+    <div class="add-form">
+      <div class="add-row">
+        <input type="text" class="emoji-i" id="c-emoji" placeholder="📦" maxlength="2">
+        <input type="text" id="c-nome" placeholder="Nome da categoria">
+      </div>
+      <div class="cores-mini" id="cores-c"></div>
+      <button class="btn-add-p" onclick="adicionarCategoria()">+ Adicionar categoria</button>
+    </div>
+  </div>
+
+  <!-- Refazer setup -->
+  <div class="card">
+    <div class="card-titulo">Avançado</div>
+    <div class="card-body">
+      <button class="btn-salvar" style="background:#e67e22;margin-bottom:10px" onclick="location.href='setup.html'">🔄 Refazer configuração inicial</button>
+      <button class="btn-danger" onclick="apagarTudo()">🗑️ Apagar todos os dados</button>
+    </div>
+  </div>
+
+  <div style="height:30px"></div>
+</div>
+
+<script src="db.js"></script>
+<script>
+let corPSel = DB.CORES[0], corCSel = DB.CORES[1];
+
+function renderCores(id, sel, cb) {
+  document.getElementById(id).innerHTML = DB.CORES.map(c =>
+    `<div class="cor-mini ${c===sel?'ativa':''}" style="background:${c}" onclick="(${cb.toString()})('${c}')"></div>`
+  ).join('');
+}
+
+function renderPessoas() {
+  const pessoas = DB.getPessoas();
+  const el = document.getElementById('lista-pessoas');
+  if (!pessoas.length) { el.innerHTML = '<div style="padding:14px 16px;color:#95a5a6;font-size:.9rem">Nenhuma pessoa adicionada</div>'; return; }
+  el.innerHTML = pessoas.map(p => `
+    <div class="pessoa-item">
+      <span class="p-emoji">${p.emoji}</span>
+      <div class="p-info">
+        <div class="p-nome">${DB.escHtml(p.nome)}</div>
+        <div class="p-tags">
+          ${p.divideCasa?'<span class="tag casa">🏠 Divide casa</span>':''}
+          ${p.usaCartao?'<span class="tag cartao">💳 Usa cartão</span>':''}
+        </div>
+      </div>
+      <button class="btn-del" onclick="deletarPessoa(${p.id})">✕</button>
+    </div>`).join('');
+}
+
+function renderCats() {
+  const cats = DB.getCategoriasExtras();
+  const el = document.getElementById('lista-cats');
+  if (!cats.length) { el.innerHTML = '<div style="padding:14px 16px;color:#95a5a6;font-size:.9rem">Nenhuma categoria extra</div>'; return; }
+  el.innerHTML = cats.map(c => `
+    <div class="pessoa-item">
+      <span class="p-emoji">${c.emoji||'📦'}</span>
+      <div class="p-info"><div class="p-nome">${DB.escHtml(c.nome)}</div></div>
+      <div style="width:16px;height:16px;border-radius:50%;background:${c.cor};margin-right:8px"></div>
+      <button class="btn-del" onclick="deletarCat(${c.id})">✕</button>
+    </div>`).join('');
+}
+
+function salvarDados() {
+  const cfg = DB.getConfig() || {};
+  cfg.nomePrincipal = document.getElementById('cfg-nome').value.trim() || cfg.nomePrincipal;
+  cfg.emojiPrincipal = document.getElementById('cfg-emoji').value.trim() || cfg.emojiPrincipal || '👤';
+  DB.saveConfig(cfg);
+  alert('Dados salvos!');
+}
+
+function salvarModos() {
+  const cfg = DB.getConfig() || {};
+  cfg.modoCasa = document.getElementById('tog-casa').checked;
+  cfg.modoCartao = document.getElementById('tog-cartao').checked;
+  DB.saveConfig(cfg);
+}
+
+function adicionarPessoa() {
+  const nome = document.getElementById('p-nome').value.trim();
+  const emoji = document.getElementById('p-emoji').value.trim() || '👤';
+  if (!nome) return alert('Informe o nome.');
+  DB.addPessoa({ nome, emoji, cor: corPSel, divideCasa: document.getElementById('p-casa').checked, usaCartao: document.getElementById('p-cartao').checked });
+  document.getElementById('p-nome').value = '';
+  document.getElementById('p-emoji').value = '';
+  renderPessoas();
+  atualizarModos();
+}
+
+function deletarPessoa(id) {
+  if (!confirm('Remover esta pessoa?')) return;
+  DB.deletePessoa(id);
+  renderPessoas();
+  atualizarModos();
+}
+
+function adicionarCategoria() {
+  const nome = document.getElementById('c-nome').value.trim();
+  const emoji = document.getElementById('c-emoji').value.trim() || '📦';
+  if (!nome) return alert('Informe o nome.');
+  DB.addCategoria({ nome, emoji, cor: corCSel });
+  document.getElementById('c-nome').value = '';
+  document.getElementById('c-emoji').value = '';
+  renderCats();
+}
+
+function deletarCat(id) {
+  if (!confirm('Remover categoria?')) return;
+  DB.deleteCategoria(id);
+  renderCats();
+}
+
+function atualizarModos() {
+  const pessoas = DB.getPessoas();
+  const cfg = DB.getConfig() || {};
+  cfg.modoCasa = pessoas.some(p => p.divideCasa);
+  cfg.modoCartao = pessoas.some(p => p.usaCartao);
+  DB.saveConfig(cfg);
+  document.getElementById('tog-casa').checked = cfg.modoCasa;
+  document.getElementById('tog-cartao').checked = cfg.modoCartao;
+}
+
+function apagarTudo() {
+  if (!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  if (!confirm('Tem certeza? Todos os gastos serão perdidos.')) return;
+  ['g3_config','g3_pessoas','g3_cats','g3_despesas','g3_receitas'].forEach(k => localStorage.removeItem(k));
+  location.href = 'setup.html';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const cfg = DB.getConfig() || {};
+  document.getElementById('cfg-nome').value = cfg.nomePrincipal || '';
+  document.getElementById('cfg-emoji').value = cfg.emojiPrincipal || '';
+  document.getElementById('tog-casa').checked = cfg.modoCasa || false;
+  document.getElementById('tog-cartao').checked = cfg.modoCartao || false;
+  renderPessoas();
+  renderCats();
+  renderCores('cores-p', corPSel, c => { corPSel = c; renderCores('cores-p', c, arguments.callee); });
+  renderCores('cores-c', corCSel, c => { corCSel = c; renderCores('cores-c', c, arguments.callee); });
+});
+</script>
+</body>
+</html>

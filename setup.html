@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurar Gastos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c5ce7">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#6c5ce7,#a29bfe);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.wizard{background:white;border-radius:24px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.progress{height:5px;background:#f0f0f0}
+.progress-bar{height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);transition:width .4s ease}
+.step{padding:32px 28px;display:none}
+.step.active{display:block}
+.step-icon{font-size:3rem;text-align:center;margin-bottom:16px}
+.step-titulo{font-size:1.4rem;font-weight:800;color:#2c3e50;text-align:center;margin-bottom:8px}
+.step-desc{font-size:.9rem;color:#95a5a6;text-align:center;margin-bottom:28px;line-height:1.5}
+.campo{margin-bottom:16px}
+.campo label{display:block;font-size:.8rem;font-weight:600;color:#636e72;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.campo input{width:100%;border:2px solid #e0e0e0;border-radius:12px;padding:12px 16px;font-size:1rem;outline:none;transition:border-color .2s}
+.campo input:focus{border-color:#6c5ce7}
+.emoji-input{font-size:1.8rem;text-align:center;width:80px!important;padding:8px!important}
+.campo-row{display:flex;gap:12px;align-items:flex-end}
+.campo-row .campo{flex:1}
+.toggle-group{display:flex;gap:12px;margin-bottom:20px}
+.toggle-btn{flex:1;padding:14px;border:2px solid #e0e0e0;border-radius:12px;background:white;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;text-align:center}
+.toggle-btn.ativo{border-color:#6c5ce7;background:#f0eeff;color:#6c5ce7}
+.toggle-btn .icon{font-size:1.5rem;display:block;margin-bottom:4px}
+.pessoas-lista{margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
+.pessoa-chip{display:flex;align-items:center;gap:10px;background:#f8f8f8;border-radius:10px;padding:10px 14px}
+.pessoa-chip .pnome{flex:1;font-weight:600;font-size:.9rem}
+.pessoa-chip .pcor{width:16px;height:16px;border-radius:50%}
+.btn-rem{background:none;border:none;color:#ccc;cursor:pointer;font-size:1.1rem;padding:2px}
+.btn-rem:active{color:#e74c3c}
+.add-pessoa{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.add-pessoa input{flex:2;min-width:100px;border:1.5px solid #ddd;border-radius:10px;padding:9px 12px;font-size:.9rem;outline:none}
+.add-pessoa input:focus{border-color:#6c5ce7}
+.add-pessoa input.emoji-s{flex:0;width:56px;text-align:center;font-size:1.3rem}
+.btn-add-p{background:#6c5ce7;color:white;border:none;border-radius:10px;padding:9px 16px;font-size:.9rem;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn-add-p:active{opacity:.8}
+.cores-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.cor-mini{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.cor-mini.ativa{border-color:#2c3e50;transform:scale(1.2)}
+.btn-proximo{width:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);color:white;border:none;border-radius:14px;padding:16px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s;box-shadow:0 4px 15px rgba(108,92,231,.3)}
+.btn-proximo:active{opacity:.8}
+.btn-voltar{background:none;border:none;color:#95a5a6;font-size:.9rem;cursor:pointer;width:100%;padding:10px;margin-top:6px}
+.resumo-item{display:flex;align-items:center;gap:12px;padding:12px;background:#f8f8f8;border-radius:10px;margin-bottom:8px}
+.resumo-item .ri-icon{font-size:1.4rem}
+.resumo-item .ri-info{flex:1}
+.resumo-item .ri-titulo{font-weight:600;font-size:.9rem}
+.resumo-item .ri-desc{font-size:.8rem;color:#95a5a6}
+.badge-on{background:#d5f5e3;color:#27ae60;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:700}
+.badge-off{background:#f0f0f0;color:#95a5a6;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:700}
+.aviso-skip{font-size:.8rem;color:#b2bec3;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wizard">
+  <div class="progress"><div class="progress-bar" id="prog"></div></div>
+
+  <!-- STEP 0: Boas-vindas -->
+  <div class="step active" id="s0">
+    <div class="step-icon">💰</div>
+    <div class="step-titulo">Bem-vindo ao Gastos!</div>
+    <div class="step-desc">Vamos configurar o aplicativo do seu jeito.<br>Leva menos de 2 minutos.</div>
+    <button class="btn-proximo" onclick="irPara(1)">Começar configuração →</button>
+  </div>
+
+  <!-- STEP 1: Sobre você -->
+  <div class="step" id="s1">
+    <div class="step-icon">👤</div>
+    <div class="step-titulo">Sobre você</div>
+    <div class="step-desc">Como você quer ser chamado no app?</div>
+    <div class="campo-row">
+      <div class="campo" style="flex:3">
+        <label>Seu nome</label>
+        <input type="text" id="cfg-nome" placeholder="Ex: João, Maria...">
+      </div>
+      <div class="campo">
+        <label>Emoji</label>
+        <input type="text" class="emoji-input" id="cfg-emoji" placeholder="👤" maxlength="2">
+      </div>
+    </div>
+    <button class="btn-proximo" onclick="validarNome()">Próximo →</button>
+    <button class="btn-voltar" onclick="irPara(0)">← Voltar</button>
+  </div>
+
+  <!-- STEP 2: Divisão de casa -->
+  <div class="step" id="s2">
+    <div class="step-icon">🏠</div>
+    <div class="step-titulo">Divisão de casa</div>
+    <div class="step-desc">Você divide as contas de casa com alguém?<br>Aluguel, energia, água, etc.</div>
+    <div class="toggle-group">
+      <button class="toggle-btn ativo" id="casa-sim" onclick="toggleCasa(true)">
+        <span class="icon">✅</span>Sim, divido
+      </button>
+      <button class="toggle-btn" id="casa-nao" onclick="toggleCasa(false)">
+        <span class="icon">❌</span>Não
+      </button>
+    </div>
+    <div id="secao-casa">
+      <label style="font-size:.8rem;font-weight:600;color:#636e72;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Quem divide a casa com você?</label>
+      <div class="pessoas-lista" id="lista-casa"></div>
+      <div class="add-pessoa">
+        <input type="text" class="emoji-s" id="casa-emoji" placeholder="👩" maxlength="2">
+        <input type="text" id="casa-nome" placeholder="Nome da pessoa">
+        <button class="btn-add-p" onclick="addPessoaCasa()">+ Add</button>
+      </div>
+      <div class="cores-mini" id="cores-casa"></div>
+    </div>
+    <button class="btn-proximo" onclick="irPara(3)" style="margin-top:20px">Próximo →</button>
+    <button class="btn-voltar" onclick="irPara(1)">← Voltar</button>
+  </div>
+
+  <!-- STEP 3: Cartão compartilhado -->
+  <div class="step" id="s3">
+    <div class="step-icon">💳</div>
+    <div class="step-titulo">Gastos no cartão</div>
+    <div class="step-desc">Você paga gastos de outras pessoas no seu cartão? O valor que elas te devem vira sua receita automaticamente.</div>
+    <div class="toggle-group">
+      <button class="toggle-btn ativo" id="cartao-sim" onclick="toggleCartao(true)">
+        <span class="icon">✅</span>Sim, uso
+      </button>
+      <button class="toggle-btn" id="cartao-nao" onclick="toggleCartao(false)">
+        <span class="icon">❌</span>Não
+      </button>
+    </div>
+    <div id="secao-cartao">
+      <label style="font-size:.8rem;font-weight:600;color:#636e72;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Quem usa seu cartão?</label>
+      <div class="pessoas-lista" id="lista-cartao"></div>
+      <div class="add-pessoa">
+        <input type="text" class="emoji-s" id="cartao-emoji" placeholder="👦" maxlength="2">
+        <input type="text" id="cartao-nome" placeholder="Nome da pessoa">
+        <button class="btn-add-p" onclick="addPessoaCartao()">+ Add</button>
+      </div>
+      <div class="cores-mini" id="cores-cartao"></div>
+    </div>
+    <button class="btn-proximo" onclick="irPara(4)" style="margin-top:20px">Próximo →</button>
+    <button class="btn-voltar" onclick="irPara(2)">← Voltar</button>
+  </div>
+
+  <!-- STEP 4: Resumo -->
+  <div class="step" id="s4">
+    <div class="step-icon">✅</div>
+    <div class="step-titulo">Tudo pronto!</div>
+    <div class="step-desc">Veja como o app foi configurado para você.</div>
+    <div id="resumo-config"></div>
+    <button class="btn-proximo" onclick="salvarEIniciar()">Começar a usar →</button>
+    <button class="btn-voltar" onclick="irPara(3)">← Voltar</button>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+let stepAtual = 0;
+const TOTAL_STEPS = 5;
+let modoCasa = true, modoCartao = true;
+let pessoasCasa = [], pessoasCartao = [];
+let corCasaSel = DB.CORES[2], corCartaoSel = DB.CORES[0];
+
+function irPara(n) {
+  document.getElementById('s' + stepAtual).classList.remove('active');
+  stepAtual = n;
+  document.getElementById('s' + n).classList.add('active');
+  document.getElementById('prog').style.width = `${(n / 4) * 100}%`;
+  if (n === 4) renderResumo();
+  window.scrollTo(0,0);
+}
+
+function validarNome() {
+  const nome = document.getElementById('cfg-nome').value.trim();
+  if (!nome) { alert('Informe seu nome.'); return; }
+  irPara(2);
+}
+
+function toggleCasa(sim) {
+  modoCasa = sim;
+  document.getElementById('casa-sim').classList.toggle('ativo', sim);
+  document.getElementById('casa-nao').classList.toggle('ativo', !sim);
+  document.getElementById('secao-casa').style.display = sim ? 'block' : 'none';
+}
+
+function toggleCartao(sim) {
+  modoCartao = sim;
+  document.getElementById('cartao-sim').classList.toggle('ativo', sim);
+  document.getElementById('cartao-nao').classList.toggle('ativo', !sim);
+  document.getElementById('secao-cartao').style.display = sim ? 'block' : 'none';
+}
+
+function renderCores(containerId, sel, onSelect) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = DB.CORES.map(c =>
+    `<div class="cor-mini ${c===sel?'ativa':''}" style="background:${c}" onclick="(${onSelect.toString()})('${c}')"></div>`
+  ).join('');
+}
+
+function addPessoaCasa() {
+  const nome = document.getElementById('casa-nome').value.trim();
+  const emoji = document.getElementById('casa-emoji').value.trim() || '👤';
+  if (!nome) return alert('Informe o nome.');
+  pessoasCasa.push({ id: Date.now(), nome, emoji, cor: corCasaSel, divideCasa: true, usaCartao: false });
+  document.getElementById('casa-nome').value = '';
+  document.getElementById('casa-emoji').value = '';
+  renderListaCasa();
+}
+
+function removerCasa(id) {
+  pessoasCasa = pessoasCasa.filter(p => p.id !== id);
+  renderListaCasa();
+}
+
+function renderListaCasa() {
+  document.getElementById('lista-casa').innerHTML = pessoasCasa.map(p =>
+    `<div class="pessoa-chip"><span>${p.emoji}</span><span class="pnome">${DB.escHtml(p.nome)}</span><div class="pcor" style="background:${p.cor}"></div><button class="btn-rem" onclick="removerCasa(${p.id})">✕</button></div>`
+  ).join('');
+}
+
+function addPessoaCartao() {
+  const nome = document.getElementById('cartao-nome').value.trim();
+  const emoji = document.getElementById('cartao-emoji').value.trim() || '👤';
+  if (!nome) return alert('Informe o nome.');
+  // Verifica se já está em pessoasCasa
+  const existeCasa = pessoasCasa.find(p => p.nome.toLowerCase() === nome.toLowerCase());
+  if (existeCasa) {
+    existeCasa.usaCartao = true;
+    alert(`${nome} já está na lista de casa e agora também usa o cartão!`);
+  } else {
+    pessoasCartao.push({ id: Date.now(), nome, emoji, cor: corCartaoSel, divideCasa: false, usaCartao: true });
+  }
+  document.getElementById('cartao-nome').value = '';
+  document.getElementById('cartao-emoji').value = '';
+  renderListaCartao();
+}
+
+function removerCartao(id) {
+  pessoasCartao = pessoasCartao.filter(p => p.id !== id);
+  renderListaCartao();
+}
+
+function renderListaCartao() {
+  document.getElementById('lista-cartao').innerHTML = pessoasCartao.map(p =>
+    `<div class="pessoa-chip"><span>${p.emoji}</span><span class="pnome">${DB.escHtml(p.nome)}</span><div class="pcor" style="background:${p.cor}"></div><button class="btn-rem" onclick="removerCartao(${p.id})">✕</button></div>`
+  ).join('');
+}
+
+function renderResumo() {
+  const nome = document.getElementById('cfg-nome').value.trim();
+  const emoji = document.getElementById('cfg-emoji').value.trim() || '👤';
+  const todasPessoas = [...pessoasCasa, ...pessoasCartao.filter(p => !pessoasCasa.find(c => c.nome === p.nome))];
+
+  let html = `
+    <div class="resumo-item">
+      <span class="ri-icon">${emoji}</span>
+      <div class="ri-info"><div class="ri-titulo">${DB.escHtml(nome)}</div><div class="ri-desc">Usuário principal</div></div>
+    </div>
+    <div class="resumo-item">
+      <span class="ri-icon">🏠</span>
+      <div class="ri-info">
+        <div class="ri-titulo">Divisão de casa</div>
+        <div class="ri-desc">${modoCasa && pessoasCasa.length > 0 ? `Dividindo com ${pessoasCasa.map(p=>p.nome).join(', ')}` : modoCasa ? 'Ativado (sem pessoas adicionadas)' : 'Desativado'}</div>
+      </div>
+      <span class="${modoCasa && pessoasCasa.length > 0 ? 'badge-on' : 'badge-off'}">${modoCasa && pessoasCasa.length > 0 ? 'ON' : 'OFF'}</span>
+    </div>
+    <div class="resumo-item">
+      <span class="ri-icon">💳</span>
+      <div class="ri-info">
+        <div class="ri-titulo">Cartão compartilhado</div>
+        <div class="ri-desc">${modoCartao && pessoasCartao.length > 0 ? `${pessoasCartao.map(p=>p.nome).join(', ')} usam seu cartão` : modoCartao ? 'Ativado (sem pessoas adicionadas)' : 'Desativado'}</div>
+      </div>
+      <span class="${modoCartao && pessoasCartao.length > 0 ? 'badge-on' : 'badge-off'}">${modoCartao && pessoasCartao.length > 0 ? 'ON' : 'OFF'}</span>
+    </div>`;
+  document.getElementById('resumo-config').innerHTML = html;
+}
+
+function salvarEIniciar() {
+  const nome = document.getElementById('cfg-nome').value.trim();
+  const emoji = document.getElementById('cfg-emoji').value.trim() || '👤';
+  if (!nome) { irPara(1); return; }
+
+  const cfg = {
+    configurado: true,
+    nomePrincipal: nome,
+    emojiPrincipal: emoji,
+    modoCasa: modoCasa && pessoasCasa.length > 0,
+    modoCartao: modoCartao && pessoasCartao.length > 0,
+  };
+  DB.saveConfig(cfg);
+
+  // Salva pessoas (unindo casa + cartão, sem duplicatas)
+  const todas = [...pessoasCasa];
+  pessoasCartao.forEach(p => {
+    if (!todas.find(t => t.nome.toLowerCase() === p.nome.toLowerCase())) todas.push(p);
+  });
+  DB.savePessoas(todas.map((p, i) => ({ ...p, id: i + 1, chave: DB.gerarChave(p.nome) + '_' + (i+1) })));
+
+  location.href = 'index.html';
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  renderCores('cores-casa', corCasaSel, c => { corCasaSel = c; renderCores('cores-casa', c, arguments.callee); });
+  renderCores('cores-cartao', corCartaoSel, c => { corCartaoSel = c; renderCores('cores-cartao', c, arguments.callee); });
+  document.getElementById('secao-casa').style.display = 'block';
+  document.getElementById('secao-cartao').style.display = 'block';
+
+  // Se já configurado, vai direto para o app
+  if (DB.isConfigured()) location.href = 'index.html';
+});
+</script>
+</body>
+</html>
