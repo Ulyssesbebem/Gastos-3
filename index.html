@@ -112,7 +112,10 @@ header h1{font-size:1.1rem;font-weight:600}
       <button class="btn-fechar" onclick="fecharModalImg()">✕</button>
     </div>
     <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin-bottom:14px">
-    <button onclick="compartilharImagem()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%">📤 Compartilhar via WhatsApp</button>
+    <button onclick="compartilharImagem()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%">📥 Salvar e abrir WhatsApp</button>
+    <div id="msg-share-ok" style="display:none;margin-top:12px;background:#e8f5e9;border-radius:8px;padding:12px;font-size:.85rem;color:#2e7d32;text-align:left">
+      ✅ Imagem salva! No WhatsApp: escolha o contato → 📎 → Galeria → envie o arquivo <b>gastos.png</b>
+    </div>
   </div>
 </div>
 
@@ -237,14 +240,20 @@ async function compartilharPessoa(pessoaId) {
 }
 
 async function compartilharImagem() {
-  if (!_imgPendente) { alert('Erro: imagem não carregada'); return; }
-  if (!navigator.share) { alert('navigator.share não disponível neste navegador'); return; }
-  try {
-    await navigator.share({ files: [_imgPendente], title: 'Gastos' });
-    fecharModalImg();
-  } catch(e) {
-    if (e.name !== 'AbortError') alert('Erro ao compartilhar: ' + e.name + ' - ' + e.message);
+  if (!_imgPendente) return;
+  if (navigator.share) {
+    try {
+      await navigator.share({ files: [_imgPendente], title: 'Gastos' });
+      fecharModalImg(); return;
+    } catch(e) { if (e.name === 'AbortError') return; }
   }
+  const url = URL.createObjectURL(_imgPendente);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'gastos.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  document.getElementById('msg-share-ok').style.display = 'block';
+  window.open('https://wa.me/', '_blank');
 }
 
 function fecharModalImg() {
