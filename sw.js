@@ -1,5 +1,5 @@
-const CACHE = 'gastos3-v2';
-const ARQUIVOS = ['index.html','setup.html','configuracoes.html','db.js','manifest.json','icon-192.png','icon-512.png'];
+const CACHE = 'gastos3-v3';
+const ARQUIVOS = ['index.html','setup.html','configuracoes.html','ativacao.html','db.js','manifest.json','icon-192.png','icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)));

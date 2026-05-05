@@ -130,6 +130,7 @@ header h1{font-size:1.1rem;font-weight:600}
 
 <script src="db.js"></script>
 <script>
+if (!localStorage.getItem('g3_ativado')) location.href = 'ativacao.html';
 if (!DB.isConfigured()) location.href = 'setup.html';
 
 let MES = new URLSearchParams(location.search).get('mes') || DB.getMesAtual();

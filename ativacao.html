@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ativar Gastos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c5ce7">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#6c5ce7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:white;border-radius:20px;padding:36px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.icone{font-size:3.5rem;margin-bottom:14px}
+h1{font-size:1.3rem;font-weight:700;color:#2c3e50;margin-bottom:8px}
+p{font-size:.88rem;color:#95a5a6;margin-bottom:28px;line-height:1.5}
+input{width:100%;border:2px solid #e0e0e0;border-radius:10px;padding:14px;font-size:1.2rem;text-align:center;letter-spacing:4px;outline:none;text-transform:uppercase;font-weight:700;color:#2c3e50;transition:border-color .2s}
+input:focus{border-color:#6c5ce7}
+input.erro{border-color:#e74c3c;animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.btn{background:#6c5ce7;color:white;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-top:14px;transition:opacity .2s}
+.btn:active{opacity:.8}
+.msg-erro{color:#e74c3c;font-size:.83rem;margin-top:10px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="icone">💰</div>
+  <h1>Ativar Gastos</h1>
+  <p>Digite o código de ativação que você recebeu após a compra</p>
+  <input type="text" id="serial" placeholder="ULYS-XXXX" maxlength="9" oninput="formatarSerial(this)" onkeydown="if(event.key==='Enter')ativar()">
+  <div class="msg-erro" id="msg-erro"></div>
+  <button class="btn" onclick="ativar()">Ativar</button>
+</div>
+<script>
+const SERIAIS = [
+  'ULYS-A2B3','ULYS-C4D5','ULYS-E6F7','ULYS-G8H2','ULYS-J3K4',
+  'ULYS-L5M6','ULYS-N7P8','ULYS-Q2R3','ULYS-S4T5','ULYS-V6W7',
+  'ULYS-X8Y2','ULYS-Z3A4','ULYS-B5C6','ULYS-D7E8','ULYS-F2G3',
+  'ULYS-H4J5','ULYS-K6L7','ULYS-M8N2','ULYS-P3Q4','ULYS-R5S6',
+  'ULYS-T7V8','ULYS-W2X3','ULYS-Y4Z5','ULYS-A6B7','ULYS-C8D2',
+  'ULYS-E3F4','ULYS-G5H6','ULYS-J7K8','ULYS-L2M3','ULYS-N4P5',
+  'ULYS-Q6R7','ULYS-S8T2','ULYS-V3W4','ULYS-X5Y6','ULYS-Z7A8',
+  'ULYS-B2C3','ULYS-D4E5','ULYS-F6G7','ULYS-H8J2','ULYS-K3L4',
+  'ULYS-M5N6','ULYS-P7Q8','ULYS-R2S3','ULYS-T4V5','ULYS-W6X7',
+  'ULYS-Y8Z2','ULYS-A3B4','ULYS-C5D6','ULYS-E7F8','ULYS-G2H3',
+  'ULYS-J4K5','ULYS-L6M7','ULYS-N8P2','ULYS-Q3R4','ULYS-S5T6',
+  'ULYS-V7W8','ULYS-X2Y3','ULYS-Z4A5','ULYS-B6C7','ULYS-D8E2',
+  'ULYS-F3G4','ULYS-H5J6','ULYS-K7L8','ULYS-M2N3','ULYS-P4Q5',
+  'ULYS-R6S7','ULYS-T8V2','ULYS-W3X4','ULYS-Y5Z6','ULYS-A7B8',
+  'ULYS-C2D3','ULYS-E4F5','ULYS-G6H7','ULYS-J8K2','ULYS-L3M4',
+  'ULYS-N5P6','ULYS-Q7R8','ULYS-S2T3','ULYS-V4W5','ULYS-X6Y7',
+  'ULYS-Z8A2','ULYS-B3C4','ULYS-D5E6','ULYS-F7G8','ULYS-H2J3',
+  'ULYS-K4L5','ULYS-M6N7','ULYS-P8Q2','ULYS-R3S4','ULYS-T5V6',
+  'ULYS-W7X8','ULYS-Y2Z3','ULYS-A4B5','ULYS-C6D7','ULYS-E8F2',
+  'ULYS-G3H4','ULYS-J5K6','ULYS-L7M8','ULYS-N2P3','ULYS-Q4R5'
+];
+
+function formatarSerial(el) {
+  let v = el.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4,8);
+  el.value = v;
+}
+
+function ativar() {
+  const serial = document.getElementById('serial').value.trim().toUpperCase();
+  const input = document.getElementById('serial');
+  const msgErro = document.getElementById('msg-erro');
+  if (SERIAIS.includes(serial)) {
+    localStorage.setItem('g3_ativado', 'true');
+    localStorage.setItem('g3_serial', serial);
+    location.href = 'index.html';
+  } else {
+    input.classList.add('erro');
+    msgErro.textContent = 'Código inválido. Verifique e tente novamente.';
+    setTimeout(() => input.classList.remove('erro'), 400);
+  }
+}
+</script>
+</body>
+</html>

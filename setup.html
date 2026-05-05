@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('secao-casa').style.display = 'block';
   document.getElementById('secao-cartao').style.display = 'block';
 
-  // Se já configurado, vai direto para o app
+  if (!localStorage.getItem('g3_ativado')) { location.href = 'ativacao.html'; return; }
   if (DB.isConfigured()) location.href = 'index.html';
 });
 </script>
