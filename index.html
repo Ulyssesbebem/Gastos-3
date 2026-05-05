@@ -111,8 +111,8 @@ header h1{font-size:1.1rem;font-weight:600}
       <h3>Compartilhar imagem</h3>
       <button class="btn-fechar" onclick="fecharModalImg()">✕</button>
     </div>
-    <p style="color:#95a5a6;font-size:.82rem;margin-bottom:12px">Segure a imagem para salvar ou compartilhar via WhatsApp</p>
-    <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block">
+    <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin-bottom:14px">
+    <button onclick="compartilharImagem()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%">📤 Compartilhar via WhatsApp</button>
   </div>
 </div>
 
@@ -215,6 +215,8 @@ function adicionarReceita(form) {
 function excluirDespesa(id) { if (!confirm('Excluir?')) return; DB.deleteDespesa(id); renderizar(); }
 function excluirReceita(id) { if (!confirm('Excluir?')) return; DB.deleteReceita(id); renderizar(); }
 
+let _imgPendente = null;
+
 async function compartilharPessoa(pessoaId) {
   const cfg = DB.getConfig();
   const p = DB.getPessoas().find(x => x.id === pessoaId);
@@ -225,29 +227,27 @@ async function compartilharPessoa(pessoaId) {
   const casaPorPessoa = p.divideCasa ? calc.casaPorPessoa : 0;
   const totalPessoal = gastos.reduce((s,d) => s+d.valor, 0);
   const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado: DB.formatarMes(MES), gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
-  if (navigator.share) {
-    try {
-      await navigator.share({ files: [img], title: `Gastos ${p.nome}` });
-      return;
-    } catch(e) {
-      if (e.name === 'AbortError') return;
-    }
-  }
-  exibirPreviewImagem(img);
-}
-
-function exibirPreviewImagem(file) {
-  const url = URL.createObjectURL(file);
+  _imgPendente = img;
+  const url = URL.createObjectURL(img);
   const mi = document.getElementById('modal-img');
   document.getElementById('modal-img-el').src = url;
+  if (mi.dataset.url) URL.revokeObjectURL(mi.dataset.url);
   mi.dataset.url = url;
   mi.classList.add('open');
+}
+
+async function compartilharImagem() {
+  if (!_imgPendente) return;
+  try {
+    await navigator.share({ files: [_imgPendente], title: 'Gastos' });
+  } catch(e) { /* AbortError = usuário cancelou */ }
 }
 
 function fecharModalImg() {
   const mi = document.getElementById('modal-img');
   if (mi.dataset.url) { URL.revokeObjectURL(mi.dataset.url); delete mi.dataset.url; }
   mi.classList.remove('open');
+  _imgPendente = null;
 }
 
 async function gerarImagem({ nome, emoji, cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
