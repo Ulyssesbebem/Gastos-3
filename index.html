@@ -112,8 +112,7 @@ header h1{font-size:1.1rem;font-weight:600}
       <button class="btn-fechar" onclick="fecharModalImg()">✕</button>
     </div>
     <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin-bottom:14px">
-    <button onclick="enviarWhatsApp()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px">📤 Enviar resumo no WhatsApp</button>
-    <button onclick="salvarImagem()" style="background:#f0f2f5;color:#2c3e50;border:none;border-radius:10px;padding:10px;font-size:.9rem;font-weight:600;cursor:pointer;width:100%">📥 Salvar imagem</button>
+    <button onclick="enviarWhatsApp()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%">📤 Enviar no WhatsApp</button>
   </div>
 </div>
 
@@ -264,16 +263,12 @@ function gerarTexto({ nome, emoji, mesFormatado, gastos, totalPessoal, casaPorPe
 
 function enviarWhatsApp() {
   if (!_textoPendente) return;
-  window.open('https://wa.me/?text=' + encodeURIComponent(_textoPendente), '_blank');
-}
-
-function salvarImagem() {
-  if (!_imgPendente) return;
-  const url = URL.createObjectURL(_imgPendente);
+  fecharModalImg();
   const a = document.createElement('a');
-  a.href = url; a.download = 'gastos.png';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  a.href = 'whatsapp://send?text=' + encodeURIComponent(_textoPendente);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function fecharModalImg() {
