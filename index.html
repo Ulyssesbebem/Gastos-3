@@ -229,7 +229,8 @@ async function compartilharPessoa(pessoaId) {
   const totalPessoal = gastos.reduce((s,d) => s+d.valor, 0);
   const mesFormatado = DB.formatarMes(MES);
 
-  _textoPendente = gerarTexto({ nome: p.nome, emoji: p.emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
+  const gastosCasa = p.divideCasa ? DB.getDespesas().filter(d => d.mes === MES && d.categoria === 'casa') : [];
+  _textoPendente = gerarTexto({ nome: p.nome, emoji: p.emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal, gastosCasa, totalCasa: calc.totalCasa, numDivisoesCasa: calc.numDivisoesCasa });
 
   const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
   _imgPendente = img;
@@ -241,14 +242,22 @@ async function compartilharPessoa(pessoaId) {
   mi.classList.add('open');
 }
 
-function gerarTexto({ nome, emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
+function gerarTexto({ nome, emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred, gastosCasa, totalCasa, numDivisoesCasa }) {
   let t = `${emoji} *${nome} — ${mesFormatado}*\n\n`;
   if (gastos.length) {
-    t += `*Seus gastos no cartão:*\n`;
+    t += `💳 *Gastos no cartão:*\n`;
     gastos.forEach(d => { t += `• ${d.descricao}${d.parcela?` (${d.parcela})`:''}  R$ ${DB.fmt(d.valor)}\n`; });
     t += `Subtotal: R$ ${DB.fmt(totalPessoal)}\n\n`;
   }
-  if (casaPorPessoa > 0) t += `*Contas de casa:* R$ ${DB.fmt(casaPorPessoa)}\n\n`;
+  if (casaPorPessoa > 0) {
+    t += `🏠 *Contas de casa (sua parte):*\n`;
+    if (gastosCasa && gastosCasa.length) {
+      gastosCasa.forEach(d => { t += `• ${d.descricao}${d.parcela?` (${d.parcela})`:''}  R$ ${DB.fmt(d.valor)}\n`; });
+      t += `Total: R$ ${DB.fmt(totalCasa)} ÷ ${numDivisoesCasa} = *R$ ${DB.fmt(casaPorPessoa)}*\n\n`;
+    } else {
+      t += `R$ ${DB.fmt(casaPorPessoa)}\n\n`;
+    }
+  }
   t += `━━━━━━━━━━━━━\n💰 *Total a pagar: R$ ${DB.fmt(totalDeve)}*\n\n_Enviado por ${nomeCred}_`;
   return t;
 }
