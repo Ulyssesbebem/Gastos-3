@@ -263,9 +263,10 @@ function gerarTexto({ nome, emoji, mesFormatado, gastos, totalPessoal, casaPorPe
 
 function enviarWhatsApp() {
   if (!_textoPendente) return;
+  const texto = _textoPendente;
   fecharModalImg();
   const a = document.createElement('a');
-  a.href = 'whatsapp://send?text=' + encodeURIComponent(_textoPendente);
+  a.href = 'whatsapp://send?text=' + encodeURIComponent(texto);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
