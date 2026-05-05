@@ -104,6 +104,18 @@ header h1{font-size:1.1rem;font-weight:600}
   </div>
 </div>
 
+<!-- Modal preview imagem compartilhamento -->
+<div class="modal" id="modal-img">
+  <div class="modal-box" style="padding:16px;text-align:center">
+    <div class="modal-title">
+      <h3>Compartilhar imagem</h3>
+      <button class="btn-fechar" onclick="fecharModalImg()">✕</button>
+    </div>
+    <p style="color:#95a5a6;font-size:.82rem;margin-bottom:12px">Segure a imagem para salvar ou compartilhar via WhatsApp</p>
+    <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block">
+  </div>
+</div>
+
 <!-- Modal editar receita -->
 <div class="modal" id="modal-rec">
   <div class="modal-box">
@@ -213,17 +225,29 @@ async function compartilharPessoa(pessoaId) {
   const casaPorPessoa = p.divideCasa ? calc.casaPorPessoa : 0;
   const totalPessoal = gastos.reduce((s,d) => s+d.valor, 0);
   const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado: DB.formatarMes(MES), gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
-  try {
-    if (navigator.canShare && navigator.canShare({ files: [img] })) {
+  if (navigator.share) {
+    try {
       await navigator.share({ files: [img], title: `Gastos ${p.nome}` });
-    } else { baixar(img, p.nome); }
-  } catch(e) { if (e.name !== 'AbortError') baixar(img, p.nome); }
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  exibirPreviewImagem(img);
 }
 
-function baixar(file, nome) {
+function exibirPreviewImagem(file) {
   const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url; a.download = `gastos-${nome}.png`; a.click();
+  const mi = document.getElementById('modal-img');
+  document.getElementById('modal-img-el').src = url;
+  mi.dataset.url = url;
+  mi.classList.add('open');
+}
+
+function fecharModalImg() {
+  const mi = document.getElementById('modal-img');
+  if (mi.dataset.url) { URL.revokeObjectURL(mi.dataset.url); delete mi.dataset.url; }
+  mi.classList.remove('open');
 }
 
 async function gerarImagem({ nome, emoji, cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
