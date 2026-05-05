@@ -112,10 +112,8 @@ header h1{font-size:1.1rem;font-weight:600}
       <button class="btn-fechar" onclick="fecharModalImg()">✕</button>
     </div>
     <img id="modal-img-el" style="width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin-bottom:14px">
-    <button onclick="compartilharImagem()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%">📥 Salvar e abrir WhatsApp</button>
-    <div id="msg-share-ok" style="display:none;margin-top:12px;background:#e8f5e9;border-radius:8px;padding:12px;font-size:.85rem;color:#2e7d32;text-align:left">
-      ✅ Imagem salva! No WhatsApp: escolha o contato → 📎 → Galeria → envie o arquivo <b>gastos.png</b>
-    </div>
+    <button onclick="enviarWhatsApp()" style="background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px">📤 Enviar resumo no WhatsApp</button>
+    <button onclick="salvarImagem()" style="background:#f0f2f5;color:#2c3e50;border:none;border-radius:10px;padding:10px;font-size:.9rem;font-weight:600;cursor:pointer;width:100%">📥 Salvar imagem</button>
   </div>
 </div>
 
@@ -218,7 +216,7 @@ function adicionarReceita(form) {
 function excluirDespesa(id) { if (!confirm('Excluir?')) return; DB.deleteDespesa(id); renderizar(); }
 function excluirReceita(id) { if (!confirm('Excluir?')) return; DB.deleteReceita(id); renderizar(); }
 
-let _imgPendente = null;
+let _imgPendente = null, _textoPendente = null;
 
 async function compartilharPessoa(pessoaId) {
   const cfg = DB.getConfig();
@@ -229,7 +227,11 @@ async function compartilharPessoa(pessoaId) {
   const totalDeve = calc.devedores[p.chave] || 0;
   const casaPorPessoa = p.divideCasa ? calc.casaPorPessoa : 0;
   const totalPessoal = gastos.reduce((s,d) => s+d.valor, 0);
-  const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado: DB.formatarMes(MES), gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
+  const mesFormatado = DB.formatarMes(MES);
+
+  _textoPendente = gerarTexto({ nome: p.nome, emoji: p.emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
+
+  const img = await gerarImagem({ nome: p.nome, emoji: p.emoji, cor: p.cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred: cfg.nomePrincipal });
   _imgPendente = img;
   const url = URL.createObjectURL(img);
   const mi = document.getElementById('modal-img');
@@ -239,28 +241,37 @@ async function compartilharPessoa(pessoaId) {
   mi.classList.add('open');
 }
 
-async function compartilharImagem() {
-  if (!_imgPendente) return;
-  if (navigator.share) {
-    try {
-      await navigator.share({ files: [_imgPendente], title: 'Gastos' });
-      fecharModalImg(); return;
-    } catch(e) { if (e.name === 'AbortError') return; }
+function gerarTexto({ nome, emoji, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
+  let t = `${emoji} *${nome} — ${mesFormatado}*\n\n`;
+  if (gastos.length) {
+    t += `*Seus gastos no cartão:*\n`;
+    gastos.forEach(d => { t += `• ${d.descricao}${d.parcela?` (${d.parcela})`:''}  R$ ${DB.fmt(d.valor)}\n`; });
+    t += `Subtotal: R$ ${DB.fmt(totalPessoal)}\n\n`;
   }
+  if (casaPorPessoa > 0) t += `*Contas de casa:* R$ ${DB.fmt(casaPorPessoa)}\n\n`;
+  t += `━━━━━━━━━━━━━\n💰 *Total a pagar: R$ ${DB.fmt(totalDeve)}*\n\n_Enviado por ${nomeCred}_`;
+  return t;
+}
+
+function enviarWhatsApp() {
+  if (!_textoPendente) return;
+  window.open('https://wa.me/?text=' + encodeURIComponent(_textoPendente), '_blank');
+}
+
+function salvarImagem() {
+  if (!_imgPendente) return;
   const url = URL.createObjectURL(_imgPendente);
   const a = document.createElement('a');
   a.href = url; a.download = 'gastos.png';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 3000);
-  document.getElementById('msg-share-ok').style.display = 'block';
-  window.open('https://wa.me/', '_blank');
 }
 
 function fecharModalImg() {
   const mi = document.getElementById('modal-img');
   if (mi.dataset.url) { URL.revokeObjectURL(mi.dataset.url); delete mi.dataset.url; }
   mi.classList.remove('open');
-  _imgPendente = null;
+  _imgPendente = null; _textoPendente = null;
 }
 
 async function gerarImagem({ nome, emoji, cor, mesFormatado, gastos, totalPessoal, casaPorPessoa, totalDeve, nomeCred }) {
